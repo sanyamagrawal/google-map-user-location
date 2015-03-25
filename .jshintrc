@@ -21,6 +21,7 @@
         "$",
         "window",
         "document",
-        "jquery"
+        "jQuery",
+        "google"
     ]
 }

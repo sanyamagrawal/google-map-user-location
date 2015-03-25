@@ -6,7 +6,7 @@
         <title>Google Map User Information</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-
+        <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
         <link rel="stylesheet" href="css/normalize.css">
         <link rel="stylesheet" href="css/root.css">
         <link rel="stylesheet" href="css/main.css">
@@ -14,10 +14,12 @@
 
     <body>
         <main>
-            <section id="google-map-container"></section>
+            <section id="map_wrapper">
+                <div id="map_canvas" class="mapping"></div>
+            </section>
         </main>
 
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.js"></script>
         <script src="js/main.js"></script>
     </body>
 
