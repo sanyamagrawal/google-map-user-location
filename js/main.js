@@ -22,39 +22,56 @@
     var MarkerUtil = {
 
             markers: [],
+            bounds: new google.maps.LatLngBounds(),
+            geocoder: new google.maps.Geocoder(),
 
             initMarkers: function(type) {
-                this.processMarker(mappedJson[type]);
+                this.processMarker(mappedJson[type], type);
             },
 
-            processMarker: function(interator) {
+            processMarker: function(interator, type) {
                 var keys = Object.keys(interator);
                 $(keys).each(function(index, key) {
                     /*jshint unused:true*/
-                    this.putMarker(key);
-                });
+                    var LatLng = interator[key].LatLng;
+                    LatLng ? this.addMarker(LatLng) : this.getLongLatInfo(key, type);
+                }.bind(this));
             },
 
-            putMarker: function(query) {
-                var address = query,
-                    geocoder = new google.maps.Geocoder();
+            getLongLatInfo: function(query, type) {
+                var address = query;
 
-                geocoder.geocode({
+                this.geocoder.geocode({
                     "address": address
-                }, function(results, status) {
-                    if (status === google.maps.GeocoderStatus.OK) {
-                        // map.setCenter(results[0].geometry.location);
-                        var marker = new google.maps.Marker({
-                            map: map,
-                            position: results[0].geometry.location
-                        });
-                        markers.push(marker);
-                    } else {
-                        alert("Geocode was not successful for the following reason: " + status);
-                    }
-                });
+                }, this.putMarker.bind(this, type, query));
+            },
+            putMarker: function(type, query, results, status) {
+
+                var position;
+
+                if (status === google.maps.GeocoderStatus.OK) {
+
+                    position = results[0].geometry.location;
+                    saveLongLatInfo(type, query, position);
+                    this.addMarker(position);
+
+                } else {
+                    alert("Geocode was not successful for the following reason: " + status);
+                }
             },
 
+            addMarker: function(position) {
+                var marker;
+
+                marker = new google.maps.Marker({
+                    map: map,
+                    position: position
+                });
+
+                this.markers.push(marker);
+                //this.addBounds(marker);
+
+            },
             // Removes the markers from the map, but keeps them in the array.
             clearMarkers: function() {
                 this.setAllMap(null);
@@ -63,9 +80,17 @@
 
             // Sets the map on all markers in the array.
             setAllMap: function(map) {
-                for (var i = 0; i < markers.length; i++) {
-                    markers[i].setMap(map);
+                for (var i = 0; i < this.markers.length; i++) {
+                    this.markers[i].setMap(map);
                 }
+            },
+
+            addBounds: function(marker) {
+                this.bounds.extend(marker.position);
+            },
+
+            fitBound: function() {
+                //map.fitBounds(this.bounds);
             }
         },
 
@@ -223,6 +248,18 @@
         return array[value];
     }
 
+    function getObjectBasedOnType(type) {
+        return mappedJson[type];
+    }
+
+    function getObjectBasedOnZoomLevel(level) {
+        return getObjectBasedOnType(ZOOM_LEVEL[level]);
+    }
+
+    function saveLongLatInfo(type, key, value) {
+        var obj = getObjectBasedOnType(type);
+        obj[key].LatLng = value;
+    }
     google.maps.event.addDomListener(window, "load", initialize);
 
 })(jQuery, window, document);
