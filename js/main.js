@@ -24,6 +24,7 @@
             markers: [],
             bounds: new google.maps.LatLngBounds(),
             geocoder: new google.maps.Geocoder(),
+            infowindow: new google.maps.InfoWindow(),
 
             initMarkers: function(type) {
                 this.processMarker(mappedJson[type], type);
@@ -34,7 +35,11 @@
                 $(keys).each(function(index, key) {
                     /*jshint unused:true*/
                     var LatLng = interator[key].LatLng;
-                    LatLng ? this.addMarker(LatLng) : this.getLongLatInfo(key, type);
+                    if (LatLng) {
+                        this.addMarker(type, key, LatLng);
+                    } else {
+                        this.getLongLatInfo(key, type);
+                    }
                 }.bind(this));
             },
 
@@ -45,6 +50,7 @@
                     "address": address
                 }, this.putMarker.bind(this, type, query));
             },
+
             putMarker: function(type, query, results, status) {
 
                 var position;
@@ -53,14 +59,14 @@
 
                     position = results[0].geometry.location;
                     saveLongLatInfo(type, query, position);
-                    this.addMarker(position);
+                    this.addMarker(type, query, position);
 
                 } else {
                     alert("Geocode was not successful for the following reason: " + status);
                 }
             },
 
-            addMarker: function(position) {
+            addMarker: function(type, query, position) {
                 var marker;
 
                 marker = new google.maps.Marker({
@@ -69,8 +75,15 @@
                 });
 
                 this.markers.push(marker);
+                google.maps.event.addListener(marker, "click", this.markerClickCallback.bind(this, type, query, marker));
                 //this.addBounds(marker);
+            },
 
+            markerClickCallback: function(type, query, marker) {
+                var count = getObjectBasedOnType(type)[query].count + 1,
+                    message = ["<div class='markerInfoBox'>", [count, "Users in this location."].join(" "), "</div>"].join("");
+                this.infowindow.setContent(message);
+                this.infowindow.open(map, marker);
             },
             // Removes the markers from the map, but keeps them in the array.
             clearMarkers: function() {
@@ -125,11 +138,11 @@
         var zoomLevel = map.getZoom(),
             typeOfZoom = ZOOM_LEVEL_MAP[zoomLevel];
 
+        MarkerUtil.clearMarkers();
         if (!typeOfZoom) {
             return;
         }
 
-        MarkerUtil.clearMarkers();
         MarkerUtil.initMarkers(typeOfZoom);
         //map.setCenter(myLatLng);
         //infowindow.setContent('Zoom: ' + zoomLevel);
