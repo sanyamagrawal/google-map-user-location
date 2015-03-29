@@ -226,7 +226,7 @@
              */
             markerClickCallback: function(type, query, marker) {
                 var count = StoreUtil.getObjectBasedOnType(type)[query].count + 1,
-                    message = ["<div class='markerInfoBox'>", [count, "Users in this location."].join(" "), "</div>"].join("");
+                    message = ["<div class='markerInfoBox'>", [count, "Users in", query].join(" "), "</div>"].join("");
 
                 this.infowindow.setContent(message);
                 this.infowindow.open(map, marker);
