@@ -66,33 +66,73 @@
                 MarkerUtil.initMarkers(this.ZOOM_LEVEL_MAP[this.DEFAULT_ZOOM_LEVEL], StoreUtil.getObjectBasedOnZoomLevel(this.DEFAULT_ZOOM_LEVEL));
             },
 
+            /**
+             * [initListerners description] Initializes all Map Related events here along with their call back funtion
+             * @return {[type]} [description]
+             */
             initListerners: function() {
                 google.maps.event.addListener(map, "zoom_changed", this.zoomChangedCallback);
             },
 
+            /**
+             * Callback for Zoom Event. It takes the type of zoom, int number and gets the type from ZOOM_LEVEL_MAP.
+             * See ZOOM_LEVEL_MAP for possible zoom events.
+             * @return {[type]} [description]
+             */
             zoomChangedCallback: function() {
                 var zoomLevel = map.getZoom(),
                     typeOfZoom = this.ZOOM_LEVEL_MAP[zoomLevel];
 
+                //Clear all Markers rendered on the map
                 MarkerUtil.clearMarkers();
+
+                //If zoom level is not within the range we want to show (ZOOM_LEVEL_MAP) return from the function
                 if (!typeOfZoom) {
                     return;
                 }
 
+                //Start rendering the markers based on the zoom level.
                 MarkerUtil.initMarkers(typeOfZoom, StoreUtil.getObjectBasedOnType(typeOfZoom));
             }
         },
 
+        /**
+         * Marker Util defines all the functionality involved with showing a Marker on the screen,
+         * hiding the marker, remomving the marker etc
+         * @type {Object}
+         */
         MarkerUtil = {
 
+            /**
+             * All markers during a particular zoom level are stored in this array.
+             * @type {Array}
+             */
             markers: [],
 
+            /**
+             * Bounds Google Map funtion reference
+             * @type {google}
+             */
             bounds: new google.maps.LatLngBounds(),
 
+            /**
+             * TO get the Long/Lat of an address from Google API
+             * @type {google}
+             */
             geocoder: new google.maps.Geocoder(),
 
+            /**
+             * To show the contect as a modal over a marker in google map
+             * @type {google}
+             */
             infowindow: new google.maps.InfoWindow(),
 
+            /**
+             * Initialize the data for the markers that need to be pased on the MAP
+             * @param  {string} type The type of marker to be placed. ("State","City" or "Zip Code")
+             * @param  {object} data The object to which contains the data required to place the marker onto the MAP.
+             * @return {} N/A
+             */
             initMarkers: function(type, data) {
                 this.processMarker(data, type);
             },
