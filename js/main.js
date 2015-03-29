@@ -14,32 +14,55 @@
  *  License: Apache License v2.0
  */
 
-// the semi-colon before function invocation is a safety net against concatenated
-// scripts and/or other plugins which may not be closed properly.
-;
 (function($, window, document, undefined) {
 
+    /**
+     * map which is currently being rendered, Global to our app so that we can use it accross diffent objects.
+     */
     var map,
 
+        /**
+         * [MapUtil description] Contains initialization method for map and event listners for map object.
+         * @type {Object}
+         */
         MapUtil = {
+
+            /**
+             * [ZOOM_LEVEL_MAP description]
+             *     A hash map of the Zoom Level and the Information which needs to be rendered. i.e
+             *     if Zoom Level is 5 then we need to render the Users States Information onto the Map.
+             * @type {Object}
+             */
             ZOOM_LEVEL_MAP: {
                 "5": "state",
                 "6": "city",
                 "7": "zip"
             },
 
+            /**
+             * [DEFAULT_ZOOM_LEVEL description]
+             *     The default zoom at whcich Google Map will be rendered.
+             *     This should be avaliable in the above ZOOM_LEVEL_MAP
+             * @type {Number}
+             */
             DEFAULT_ZOOM_LEVEL: 5,
 
+            /**
+             * [initialize description] Renders the Google Map on to the element
+             * @return {[type]} [description]
+             */
             initialize: function() {
-                StoreUtil.processJSON();
                 var mapOptions = {
                     zoom: this.DEFAULT_ZOOM_LEVEL,
                     center: new google.maps.LatLng(20.593684, 78.962880)
                 };
-                map = new google.maps.Map(document.getElementById("map-canvas"),
-                    mapOptions);
 
+                map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+
+                //Add listners and callback on google map
                 this.initListerners();
+
+                StoreUtil.processJSON();
                 MarkerUtil.initMarkers(this.ZOOM_LEVEL_MAP[this.DEFAULT_ZOOM_LEVEL], StoreUtil.getObjectBasedOnZoomLevel(this.DEFAULT_ZOOM_LEVEL));
             },
 
