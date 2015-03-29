@@ -26,8 +26,8 @@
             geocoder: new google.maps.Geocoder(),
             infowindow: new google.maps.InfoWindow(),
 
-            initMarkers: function(type) {
-                this.processMarker(mappedJson[type], type);
+            initMarkers: function(type, data) {
+                this.processMarker(data, type);
             },
 
             processMarker: function(interator, type) {
@@ -58,7 +58,7 @@
                 if (status === google.maps.GeocoderStatus.OK) {
 
                     position = results[0].geometry.location;
-                    saveLongLatInfo(type, query, position);
+                    StoreUtil.saveLongLatInfo(type, query, position);
                     this.addMarker(type, query, position);
 
                 } else {
@@ -80,11 +80,12 @@
             },
 
             markerClickCallback: function(type, query, marker) {
-                var count = getObjectBasedOnType(type)[query].count + 1,
+                var count = StoreUtil.getObjectBasedOnType(type)[query].count + 1,
                     message = ["<div class='markerInfoBox'>", [count, "Users in this location."].join(" "), "</div>"].join("");
                 this.infowindow.setContent(message);
                 this.infowindow.open(map, marker);
             },
+
             // Removes the markers from the map, but keeps them in the array.
             clearMarkers: function() {
                 this.setAllMap(null);
@@ -107,34 +108,163 @@
             }
         },
 
+        StoreUtil = {
+            mappedJson: {},
+
+            getJSON: function() {
+                var response = [{
+                    userId: 1,
+                    locationDetails: {
+                        state: {
+                            value: "Karnataka",
+                            longLat: [0.9876, 0.9988]
+                        },
+                        city: {
+                            value: "Bangalore",
+                            longLat: []
+                        },
+                        zipCode: {
+                            value: 560103,
+                            longLat: []
+                        }
+                    }
+
+                }, {
+                    userId: 1,
+                    locationDetails: {
+                        state: {
+                            value: "Karnataka",
+                            longLat: [0.9876, 0.9988]
+                        },
+                        city: {
+                            value: "Bangalore",
+                            longLat: []
+                        },
+                        zipCode: {
+                            value: 560101,
+                            longLat: []
+                        }
+                    }
+
+                }, {
+                    userId: 1,
+                    locationDetails: {
+                        state: {
+                            value: "Karnataka",
+                            longLat: [0.9876, 0.9988]
+                        },
+                        city: {
+                            value: "Hubli",
+                            longLat: []
+                        },
+                        zipCode: {
+                            value: 560003,
+                            longLat: []
+                        }
+                    }
+
+                }, {
+                    userId: 1,
+                    locationDetails: {
+                        state: {
+                            value: "Delhi",
+                            longLat: [0.9876, 0.9988]
+                        },
+                        city: {
+                            value: "Delhi",
+                            longLat: []
+                        },
+                        zipCode: {
+                            value: 110556,
+                            longLat: []
+                        }
+                    }
+
+                }];
+                return response;
+            },
+
+            processJSON: function() {
+                var data = this.getJSON(),
+                    stateInfo = {},
+                    cityInfo = {},
+                    zipInfo = {};
+
+                $(data).each(function(index, user) {
+
+                    /*jshint unused:true*/
+
+                    var locationInfo = user.locationDetails,
+                        state = locationInfo.state.value,
+                        city = locationInfo.city.value,
+                        zip = locationInfo.zipCode.value;
+
+                    this.put(stateInfo, state);
+                    this.put(cityInfo, [state, city].join(DELIMITOR));
+                    this.put(zipInfo, [state, city, zip].join(DELIMITOR));
+                    // cityInfo = put(stateInfo, state);
+                    // zipInfo = put(cityInfo, city);
+                    // put(zipInfo, zip);
+                }.bind(this));
+
+                this.mappedJson = {
+                    state: stateInfo,
+                    city: cityInfo,
+                    zip: zipInfo
+                };
+            },
+
+            put: function(array, value) {
+                if (!array[value]) {
+                    array[value] = {};
+                    array[value].count = 0;
+                } else {
+                    array[value].count = array[value].count + 1;
+                }
+                return array[value];
+            },
+
+            getObjectBasedOnType: function(type) {
+                return this.mappedJson[type];
+            },
+
+            getObjectBasedOnZoomLevel: function(level) {
+                return this.getObjectBasedOnType(ZOOM_LEVEL_MAP[level]);
+            },
+
+            saveLongLatInfo: function(type, key, value) {
+                var obj = this.getObjectBasedOnType(type);
+                obj[key].LatLng = value;
+            }
+        },
         map,
-        mappedJson = {},
+
         DELIMITOR = ",",
         ZOOM_LEVEL_MAP = {
-            "4": "state",
-            "5": "city",
-            "6": "zip"
+            "5": "state",
+            "6": "city",
+            "7": "zip"
         },
-        ZOOM_LEVEL = 4;
+        DEFAULT_ZOOM_LEVEL = 5;
 
     function initialize() {
-        processJSON();
+        StoreUtil.processJSON();
         var mapOptions = {
-            zoom: ZOOM_LEVEL,
+            zoom: DEFAULT_ZOOM_LEVEL,
             center: new google.maps.LatLng(20.593684, 78.962880)
         };
         map = new google.maps.Map(document.getElementById("map-canvas"),
             mapOptions);
 
         initListerners();
-        MarkerUtil.initMarkers(ZOOM_LEVEL_MAP[ZOOM_LEVEL]);
+        MarkerUtil.initMarkers(ZOOM_LEVEL_MAP[DEFAULT_ZOOM_LEVEL], StoreUtil.getObjectBasedOnZoomLevel(DEFAULT_ZOOM_LEVEL));
     }
 
     function initListerners() {
-        google.maps.event.addListener(map, "zoom_changed", zoomChangedcallBack);
+        google.maps.event.addListener(map, "zoom_changed", zoomChangedCallback);
     }
 
-    function zoomChangedcallBack() {
+    function zoomChangedCallback() {
         var zoomLevel = map.getZoom(),
             typeOfZoom = ZOOM_LEVEL_MAP[zoomLevel];
 
@@ -143,136 +273,9 @@
             return;
         }
 
-        MarkerUtil.initMarkers(typeOfZoom);
-        //map.setCenter(myLatLng);
-        //infowindow.setContent('Zoom: ' + zoomLevel);
+        MarkerUtil.initMarkers(typeOfZoom, StoreUtil.getObjectBasedOnType(typeOfZoom));
     }
 
-    function getJSON() {
-        var response = [{
-            userId: 1,
-            locationDetails: {
-                state: {
-                    value: "Karnataka",
-                    longLat: [0.9876, 0.9988]
-                },
-                city: {
-                    value: "Bangalore",
-                    longLat: []
-                },
-                zipCode: {
-                    value: 560103,
-                    longLat: []
-                }
-            }
-
-        }, {
-            userId: 1,
-            locationDetails: {
-                state: {
-                    value: "Karnataka",
-                    longLat: [0.9876, 0.9988]
-                },
-                city: {
-                    value: "Bangalore",
-                    longLat: []
-                },
-                zipCode: {
-                    value: 560101,
-                    longLat: []
-                }
-            }
-
-        }, {
-            userId: 1,
-            locationDetails: {
-                state: {
-                    value: "Karnataka",
-                    longLat: [0.9876, 0.9988]
-                },
-                city: {
-                    value: "Hubli",
-                    longLat: []
-                },
-                zipCode: {
-                    value: 560003,
-                    longLat: []
-                }
-            }
-
-        }, {
-            userId: 1,
-            locationDetails: {
-                state: {
-                    value: "Delhi",
-                    longLat: [0.9876, 0.9988]
-                },
-                city: {
-                    value: "Delhi",
-                    longLat: []
-                },
-                zipCode: {
-                    value: 110556,
-                    longLat: []
-                }
-            }
-
-        }];
-        return response;
-    }
-
-    function processJSON() {
-        var data = getJSON(),
-            stateInfo = {},
-            cityInfo = {},
-            zipInfo = {};
-
-        $(data).each(function(index, user) {
-
-            /*jshint unused:true*/
-
-            var locationInfo = user.locationDetails,
-                state = locationInfo.state.value,
-                city = locationInfo.city.value,
-                zip = locationInfo.zipCode.value;
-
-            put(stateInfo, state);
-            put(cityInfo, [state, city].join(DELIMITOR));
-            put(zipInfo, [state, city, zip].join(DELIMITOR));
-            // cityInfo = put(stateInfo, state);
-            // zipInfo = put(cityInfo, city);
-            // put(zipInfo, zip);
-        });
-
-        mappedJson = {
-            state: stateInfo,
-            city: cityInfo,
-            zip: zipInfo
-        };
-    }
-
-    function put(array, value) {
-        if (!array[value]) {
-            array[value] = {};
-            array[value].count = 0;
-        } else {
-            array[value].count = array[value].count + 1;
-        }
-        return array[value];
-    }
-
-    function getObjectBasedOnType(type) {
-        return mappedJson[type];
-    }
-
-    function getObjectBasedOnZoomLevel(level) {
-        return getObjectBasedOnType(ZOOM_LEVEL[level]);
-    }
-
-    function saveLongLatInfo(type, key, value) {
-        var obj = getObjectBasedOnType(type);
-        obj[key].LatLng = value;
-    }
     google.maps.event.addDomListener(window, "load", initialize);
 
 })(jQuery, window, document);
