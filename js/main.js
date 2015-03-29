@@ -19,7 +19,45 @@
 ;
 (function($, window, document, undefined) {
 
-    var MarkerUtil = {
+    var map,
+
+        MapUtil = {
+            ZOOM_LEVEL_MAP: {
+                "5": "state",
+                "6": "city",
+                "7": "zip"
+            },
+            DEFAULT_ZOOM_LEVEL: 5,
+            initialize: function() {
+                StoreUtil.processJSON();
+                var mapOptions = {
+                    zoom: this.DEFAULT_ZOOM_LEVEL,
+                    center: new google.maps.LatLng(20.593684, 78.962880)
+                };
+                map = new google.maps.Map(document.getElementById("map-canvas"),
+                    mapOptions);
+
+                this.initListerners();
+                MarkerUtil.initMarkers(this.ZOOM_LEVEL_MAP[this.DEFAULT_ZOOM_LEVEL], StoreUtil.getObjectBasedOnZoomLevel(this.DEFAULT_ZOOM_LEVEL));
+            },
+
+            initListerners: function() {
+                google.maps.event.addListener(map, "zoom_changed", this.zoomChangedCallback);
+            },
+
+            zoomChangedCallback: function() {
+                var zoomLevel = map.getZoom(),
+                    typeOfZoom = this.ZOOM_LEVEL_MAP[zoomLevel];
+
+                MarkerUtil.clearMarkers();
+                if (!typeOfZoom) {
+                    return;
+                }
+
+                MarkerUtil.initMarkers(typeOfZoom, StoreUtil.getObjectBasedOnType(typeOfZoom));
+            }
+        },
+        MarkerUtil = {
 
             markers: [],
             bounds: new google.maps.LatLngBounds(),
@@ -32,9 +70,11 @@
 
             processMarker: function(interator, type) {
                 var keys = Object.keys(interator);
+
                 $(keys).each(function(index, key) {
                     /*jshint unused:true*/
                     var LatLng = interator[key].LatLng;
+
                     if (LatLng) {
                         this.addMarker(type, key, LatLng);
                     } else {
@@ -82,6 +122,7 @@
             markerClickCallback: function(type, query, marker) {
                 var count = StoreUtil.getObjectBasedOnType(type)[query].count + 1,
                     message = ["<div class='markerInfoBox'>", [count, "Users in this location."].join(" "), "</div>"].join("");
+
                 this.infowindow.setContent(message);
                 this.infowindow.open(map, marker);
             },
@@ -94,7 +135,8 @@
 
             // Sets the map on all markers in the array.
             setAllMap: function(map) {
-                for (var i = 0; i < this.markers.length; i++) {
+                var i = 0;
+                for (i; i < this.markers.length; i++) {
                     this.markers[i].setMap(map);
                 }
             },
@@ -110,7 +152,7 @@
 
         StoreUtil = {
             mappedJson: {},
-
+            DELIMITOR: ",",
             getJSON: function() {
                 var response = [{
                     userId: 1,
@@ -200,8 +242,8 @@
                         zip = locationInfo.zipCode.value;
 
                     this.put(stateInfo, state);
-                    this.put(cityInfo, [state, city].join(DELIMITOR));
-                    this.put(zipInfo, [state, city, zip].join(DELIMITOR));
+                    this.put(cityInfo, [state, city].join(this.DELIMITOR));
+                    this.put(zipInfo, [state, city, zip].join(this.DELIMITOR));
                     // cityInfo = put(stateInfo, state);
                     // zipInfo = put(cityInfo, city);
                     // put(zipInfo, zip);
@@ -215,12 +257,14 @@
             },
 
             put: function(array, value) {
+
                 if (!array[value]) {
                     array[value] = {};
                     array[value].count = 0;
                 } else {
                     array[value].count = array[value].count + 1;
                 }
+
                 return array[value];
             },
 
@@ -229,53 +273,16 @@
             },
 
             getObjectBasedOnZoomLevel: function(level) {
-                return this.getObjectBasedOnType(ZOOM_LEVEL_MAP[level]);
+                return this.getObjectBasedOnType(MapUtil.ZOOM_LEVEL_MAP[level]);
             },
 
             saveLongLatInfo: function(type, key, value) {
                 var obj = this.getObjectBasedOnType(type);
+
                 obj[key].LatLng = value;
             }
-        },
-        map,
-
-        DELIMITOR = ",",
-        ZOOM_LEVEL_MAP = {
-            "5": "state",
-            "6": "city",
-            "7": "zip"
-        },
-        DEFAULT_ZOOM_LEVEL = 5;
-
-    function initialize() {
-        StoreUtil.processJSON();
-        var mapOptions = {
-            zoom: DEFAULT_ZOOM_LEVEL,
-            center: new google.maps.LatLng(20.593684, 78.962880)
         };
-        map = new google.maps.Map(document.getElementById("map-canvas"),
-            mapOptions);
 
-        initListerners();
-        MarkerUtil.initMarkers(ZOOM_LEVEL_MAP[DEFAULT_ZOOM_LEVEL], StoreUtil.getObjectBasedOnZoomLevel(DEFAULT_ZOOM_LEVEL));
-    }
-
-    function initListerners() {
-        google.maps.event.addListener(map, "zoom_changed", zoomChangedCallback);
-    }
-
-    function zoomChangedCallback() {
-        var zoomLevel = map.getZoom(),
-            typeOfZoom = ZOOM_LEVEL_MAP[zoomLevel];
-
-        MarkerUtil.clearMarkers();
-        if (!typeOfZoom) {
-            return;
-        }
-
-        MarkerUtil.initMarkers(typeOfZoom, StoreUtil.getObjectBasedOnType(typeOfZoom));
-    }
-
-    google.maps.event.addDomListener(window, "load", initialize);
+    google.maps.event.addDomListener(window, "load", MapUtil.initialize.bind(MapUtil));
 
 })(jQuery, window, document);
