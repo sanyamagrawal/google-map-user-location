@@ -17,40 +17,97 @@
 // the semi-colon before function invocation is a safety net against concatenated
 // scripts and/or other plugins which may not be closed properly.
 ;
-(function(window, document, undefined) {
-    var map;
+(function($, window, document, undefined) {
+
+    var MarkerUtil = {
+
+            markers: [],
+
+            initMarkers: function(type) {
+                this.processMarker(mappedJson[type]);
+            },
+
+            processMarker: function(interator) {
+                var keys = Object.keys(interator);
+                $(keys).each(function(index, key) {
+                    /*jshint unused:true*/
+                    this.putMarker(key);
+                });
+            },
+
+            putMarker: function(query) {
+                var address = query,
+                    geocoder = new google.maps.Geocoder();
+
+                geocoder.geocode({
+                    "address": address
+                }, function(results, status) {
+                    if (status === google.maps.GeocoderStatus.OK) {
+                        // map.setCenter(results[0].geometry.location);
+                        var marker = new google.maps.Marker({
+                            map: map,
+                            position: results[0].geometry.location
+                        });
+                        markers.push(marker);
+                    } else {
+                        alert("Geocode was not successful for the following reason: " + status);
+                    }
+                });
+            },
+
+            // Removes the markers from the map, but keeps them in the array.
+            clearMarkers: function() {
+                this.setAllMap(null);
+                this.markers = [];
+            },
+
+            // Sets the map on all markers in the array.
+            setAllMap: function(map) {
+                for (var i = 0; i < markers.length; i++) {
+                    markers[i].setMap(map);
+                }
+            }
+        },
+
+        map,
+        mappedJson = {},
+        DELIMITOR = ",",
+        ZOOM_LEVEL_MAP = {
+            "4": "state",
+            "5": "city",
+            "6": "zip"
+        },
+        ZOOM_LEVEL = 4;
 
     function initialize() {
+        processJSON();
         var mapOptions = {
-            zoom: 4,
+            zoom: ZOOM_LEVEL,
             center: new google.maps.LatLng(20.593684, 78.962880)
         };
         map = new google.maps.Map(document.getElementById("map-canvas"),
             mapOptions);
-        initializeMarkers();
+
+        initListerners();
+        MarkerUtil.initMarkers(ZOOM_LEVEL_MAP[ZOOM_LEVEL]);
     }
 
-    function initializeMarkers() {
-        codeAddress("Karnataka");
+    function initListerners() {
+        google.maps.event.addListener(map, "zoom_changed", zoomChangedcallBack);
     }
 
-    function codeAddress(query) {
-        var address = query,
-            geocoder = new google.maps.Geocoder();
+    function zoomChangedcallBack() {
+        var zoomLevel = map.getZoom(),
+            typeOfZoom = ZOOM_LEVEL_MAP[zoomLevel];
 
-        geocoder.geocode({
-            "address": address
-        }, function(results, status) {
-            if (status === google.maps.GeocoderStatus.OK) {
-                // map.setCenter(results[0].geometry.location);
-                var marker = new google.maps.Marker({
-                    map: map,
-                    position: results[0].geometry.location
-                });
-            } else {
-                alert("Geocode was not successful for the following reason: " + status);
-            }
-        });
+        if (!typeOfZoom) {
+            return;
+        }
+
+        MarkerUtil.clearMarkers();
+        MarkerUtil.initMarkers(typeOfZoom);
+        //map.setCenter(myLatLng);
+        //infowindow.setContent('Zoom: ' + zoomLevel);
     }
 
     function getJSON() {
@@ -141,13 +198,31 @@
                 city = locationInfo.city.value,
                 zip = locationInfo.zipCode.value;
 
-            cityInfo = stateInfo.put(state);
-            zipInfo = cityInfo.put(city);
-            zipInfo.put(zip);
+            put(stateInfo, state);
+            put(cityInfo, [state, city].join(DELIMITOR));
+            put(zipInfo, [state, city, zip].join(DELIMITOR));
+            // cityInfo = put(stateInfo, state);
+            // zipInfo = put(cityInfo, city);
+            // put(zipInfo, zip);
         });
 
-        return stateInfo;
+        mappedJson = {
+            state: stateInfo,
+            city: cityInfo,
+            zip: zipInfo
+        };
+    }
+
+    function put(array, value) {
+        if (!array[value]) {
+            array[value] = {};
+            array[value].count = 0;
+        } else {
+            array[value].count = array[value].count + 1;
+        }
+        return array[value];
     }
 
     google.maps.event.addDomListener(window, "load", initialize);
-})(window, document);
+
+})(jQuery, window, document);
