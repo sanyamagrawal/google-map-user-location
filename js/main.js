@@ -27,7 +27,9 @@
                 "6": "city",
                 "7": "zip"
             },
+
             DEFAULT_ZOOM_LEVEL: 5,
+
             initialize: function() {
                 StoreUtil.processJSON();
                 var mapOptions = {
@@ -57,11 +59,15 @@
                 MarkerUtil.initMarkers(typeOfZoom, StoreUtil.getObjectBasedOnType(typeOfZoom));
             }
         },
+
         MarkerUtil = {
 
             markers: [],
+
             bounds: new google.maps.LatLngBounds(),
+
             geocoder: new google.maps.Geocoder(),
+
             infowindow: new google.maps.InfoWindow(),
 
             initMarkers: function(type, data) {
@@ -152,22 +158,21 @@
 
         StoreUtil = {
             mappedJson: {},
+
             DELIMITOR: ",",
+
             getJSON: function() {
                 var response = [{
                     userId: 1,
                     locationDetails: {
                         state: {
-                            value: "Karnataka",
-                            longLat: [0.9876, 0.9988]
+                            value: "Karnataka"
                         },
                         city: {
-                            value: "Bangalore",
-                            longLat: []
+                            value: "Bangalore"
                         },
                         zipCode: {
-                            value: 560103,
-                            longLat: []
+                            value: 560103
                         }
                     }
 
@@ -175,16 +180,13 @@
                     userId: 1,
                     locationDetails: {
                         state: {
-                            value: "Karnataka",
-                            longLat: [0.9876, 0.9988]
+                            value: "Karnataka"
                         },
                         city: {
-                            value: "Bangalore",
-                            longLat: []
+                            value: "Bangalore"
                         },
                         zipCode: {
-                            value: 560101,
-                            longLat: []
+                            value: 560101
                         }
                     }
 
@@ -192,16 +194,13 @@
                     userId: 1,
                     locationDetails: {
                         state: {
-                            value: "Karnataka",
-                            longLat: [0.9876, 0.9988]
+                            value: "Karnataka"
                         },
                         city: {
-                            value: "Hubli",
-                            longLat: []
+                            value: "Hubli"
                         },
                         zipCode: {
-                            value: 560003,
-                            longLat: []
+                            value: 560003
                         }
                     }
 
@@ -209,16 +208,13 @@
                     userId: 1,
                     locationDetails: {
                         state: {
-                            value: "Delhi",
-                            longLat: [0.9876, 0.9988]
+                            value: "Delhi"
                         },
                         city: {
-                            value: "Delhi",
-                            longLat: []
+                            value: "Delhi"
                         },
                         zipCode: {
-                            value: 110556,
-                            longLat: []
+                            value: 110556
                         }
                     }
 
