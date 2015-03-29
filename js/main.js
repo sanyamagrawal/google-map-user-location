@@ -71,7 +71,7 @@
              * @return {[type]} [description]
              */
             initListerners: function() {
-                google.maps.event.addListener(map, "zoom_changed", this.zoomChangedCallback);
+                google.maps.event.addListener(map, "zoom_changed", this.zoomChangedCallback.bind(this));
             },
 
             /**
@@ -130,13 +130,21 @@
             /**
              * Initialize the data for the markers that need to be pased on the MAP
              * @param  {string} type The type of marker to be placed. ("State","City" or "Zip Code")
-             * @param  {object} data The object to which contains the data required to place the marker onto the MAP.
+             * @param  {object} data The object which contains the data required to place the marker onto the MAP.
              * @return {} N/A
              */
             initMarkers: function(type, data) {
                 this.processMarker(data, type);
             },
 
+            /**
+             * This function is responsible for iterating over the data and finding out if we have Longitute and
+             * Latitude information of a particlar address .
+             * If Present it will call the render function which will place the marker and if not present will
+             * call the Google Map geoCoder API to get Long/Lat Information
+             * @param  {object} interator The object which contains the data required to place the marker onto the MAP.
+             * @param  {string} type The type of marker to be placed. ("State","City" or "Zip Code")
+             */
             processMarker: function(interator, type) {
                 var keys = Object.keys(interator);
 
@@ -144,14 +152,20 @@
                     /*jshint unused:true*/
                     var LatLng = interator[key].LatLng;
 
+                    //If long/lat information is present then add the marker.
                     if (LatLng) {
                         this.addMarker(type, key, LatLng);
                     } else {
+                        // else call geoLocator API to get long/lat information.
                         this.getLongLatInfo(key, type);
                     }
                 }.bind(this));
             },
-
+            /**
+             * Get Log Lat Information based on address
+             * @param  {String} query   The address whose Co-oridnates needs to be found. (Karnataka Or Karnataka,Bangalore or Karnataka,Bangalore,560103)
+             * @param  {string} type    The type of marker to be placed. ("State","City" or "Zip Code")
+             */
             getLongLatInfo: function(query, type) {
                 var address = query;
 
@@ -160,6 +174,14 @@
                 }, this.putMarker.bind(this, type, query));
             },
 
+            /**
+             * Function Caches the result from geocoder.geocode and calls the method to add the marker to map
+             * @param  {string} type    The type of marker to be placed. ("State","City" or "Zip Code")
+             * @param  {String} query   The address whose Co-oridnates needs to be found. (Karnataka Or Karnataka,Bangalore or Karnataka,Bangalore,560103)
+             * @param  {object} results google Location object. Result of geocoder.geocode
+             * @param  {String} status  google.maps.GeocoderStatus ENUM status
+             * @return {[type]}         NA
+             */
             putMarker: function(type, query, results, status) {
 
                 var position;
@@ -175,6 +197,12 @@
                 }
             },
 
+            /**
+             * Place Marker on Google Map based on the result from GetLongLatInfo Function
+             * @param  {string} type        The type of marker to be placed. ("State","City" or "Zip Code")
+             * @param  {String} query       The address whose Co-oridnates needs to be found. (Karnataka Or Karnataka,Bangalore or Karnataka,Bangalore,560103)
+             * @param  {Object} position    Object that contains the co-ordinates of the query string
+             */
             addMarker: function(type, query, position) {
                 var marker;
 
@@ -184,10 +212,18 @@
                 });
 
                 this.markers.push(marker);
+
+                //Event Listerner to show Info tooltip when a marker is clicked.
                 google.maps.event.addListener(marker, "click", this.markerClickCallback.bind(this, type, query, marker));
                 //this.addBounds(marker);
             },
 
+            /**
+             * Shows a tooltip with Information above a marker in a map
+             * @param  {string} type    The type of marker to be placed. ("State","City" or "Zip Code")
+             * @param  {String} query   The address whose Co-oridnates needs to be found. (Karnataka Or Karnataka,Bangalore or Karnataka,Bangalore,560103)
+             * @param  {Object} marker  Google Marker Object which contains details of a address.
+             */
             markerClickCallback: function(type, query, marker) {
                 var count = StoreUtil.getObjectBasedOnType(type)[query].count + 1,
                     message = ["<div class='markerInfoBox'>", [count, "Users in this location."].join(" "), "</div>"].join("");
@@ -196,13 +232,18 @@
                 this.infowindow.open(map, marker);
             },
 
-            // Removes the markers from the map, but keeps them in the array.
+            /**
+             * Removes the markers from the map, but keeps them in the array.
+             */
             clearMarkers: function() {
                 this.setAllMap(null);
                 this.markers = [];
             },
 
-            // Sets the map on all markers in the array.
+            /**
+             * Sets the map on all markers in the array.
+             * @param {Object} map The map to be set
+             */
             setAllMap: function(map) {
                 var i = 0;
                 for (i; i < this.markers.length; i++) {
@@ -219,11 +260,29 @@
             }
         },
 
+        /**
+         * Store Util Contains Methods and API's to get the Users Details, Process the User's details based
+         * Google map and some Utility Function.
+         * @type {Object}
+         */
         StoreUtil = {
+            /**
+             * JSON Formot required to render the Data in Google Maps.
+             * @type {Object}
+             */
             mappedJson: {},
 
+            /**
+             * Speical Character used to seperate different values for the address which needs to be parsed by
+             * Google Map.
+             * @type {String}
+             */
             DELIMITOR: ",",
 
+            /**
+             * function returns a json of Users data.
+             * @return {Object} JSON Object.
+             */
             getJSON: function() {
                 var response = [{
                     userId: 1,
@@ -235,12 +294,12 @@
                             value: "Bangalore"
                         },
                         zipCode: {
-                            value: 560103
+                            value: 560003
                         }
                     }
 
                 }, {
-                    userId: 1,
+                    userId: 2,
                     locationDetails: {
                         state: {
                             value: "Karnataka"
@@ -254,7 +313,7 @@
                     }
 
                 }, {
-                    userId: 1,
+                    userId: 3,
                     locationDetails: {
                         state: {
                             value: "Karnataka"
@@ -268,7 +327,7 @@
                     }
 
                 }, {
-                    userId: 1,
+                    userId: 4,
                     locationDetails: {
                         state: {
                             value: "Delhi"
@@ -285,6 +344,9 @@
                 return response;
             },
 
+            /**
+             * Iterates over the Json and converts it to an object that is easier to render to Google Maps.
+             */
             processJSON: function() {
                 var data = this.getJSON(),
                     stateInfo = {},
@@ -300,14 +362,20 @@
                         city = locationInfo.city.value,
                         zip = locationInfo.zipCode.value;
 
+                    //Place State Inforamtion here.
                     this.put(stateInfo, state);
+
+                    //Places State,City Information in cityInfo.
                     this.put(cityInfo, [state, city].join(this.DELIMITOR));
+
+                    //Places State,City,ZipCode Information Here
                     this.put(zipInfo, [state, city, zip].join(this.DELIMITOR));
                     // cityInfo = put(stateInfo, state);
                     // zipInfo = put(cityInfo, city);
                     // put(zipInfo, zip);
                 }.bind(this));
 
+                //Finally add all the information to a single JSON as ECMA5 doesnt support sending multiple response.
                 this.mappedJson = {
                     state: stateInfo,
                     city: cityInfo,
@@ -315,26 +383,51 @@
                 };
             },
 
-            put: function(array, value) {
+            /**
+             * A Utility Function which is useful to add infomration to a Object.
+             * I tried adding it to Object.prototype.put but this somehow seems to break google API.
+             * Still have to figure out why this is happening.
+             * @param  {Object} obj     Object in which the value neeeds to be placed
+             * @param  {[type]} value   The value which needs to be added to conunt key
+             * @return {Object}         The Newely Created Object which might have or not ahve count as a property.
+             */
+            put: function(obj, value) {
 
-                if (!array[value]) {
-                    array[value] = {};
-                    array[value].count = 0;
+                if (!obj[value]) {
+                    obj[value] = {};
+                    obj[value].count = 0;
                 } else {
-                    array[value].count = array[value].count + 1;
+                    obj[value].count = obj[value].count + 1;
                 }
 
-                return array[value];
+                return obj[value];
             },
 
+            /**
+             * Get City, State or Zip Code Obejct to be processed based on the type.
+             * @param  {string} type    The type of marker to be placed. ("State","City" or "Zip Code")
+             * @return {object}         The type of marker to be placed
+             */
             getObjectBasedOnType: function(type) {
                 return this.mappedJson[type];
             },
 
+            /**
+             * Get City, State or Zip Code Object to be processed based on the Zoom Level.
+             * @param  {string} level    The type of marker to be placed. ("State","City" or "Zip Code")
+             * @return {object}         The type of marker to be placed
+             */
             getObjectBasedOnZoomLevel: function(level) {
                 return this.getObjectBasedOnType(MapUtil.ZOOM_LEVEL_MAP[level]);
             },
 
+            /**
+             * Utility Function to Cache the Longitute/Latitude information of a particlar address,
+             * avaliable in the Object
+             * @param  {string} type    The type of marker to be placed. ("State","City" or "Zip Code")
+             * @param  {String} key     The address whose Co-oridnates needs to be found. (Karnataka Or Karnataka,Bangalore or Karnataka,Bangalore,560103)
+             * @param  {[type]} value   The value which needs to be put in LatLng value.
+             */
             saveLongLatInfo: function(type, key, value) {
                 var obj = this.getObjectBasedOnType(type);
 
@@ -342,6 +435,7 @@
             }
         };
 
+    // Once The DOM Objet is avaliable start rendering our MAP.
     google.maps.event.addDomListener(window, "load", MapUtil.initialize.bind(MapUtil));
 
 })(jQuery, window, document);
