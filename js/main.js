@@ -29,14 +29,15 @@
 
         /**
          * [MapUtil description] Contains initialization method for map and event listners for map object.
+         *
          * @type {Object}
          */
         MapUtil = {
 
             /**
-             * [ZOOM_LEVEL_MAP description]
-             *     A hash map of the Zoom Level and the Information which needs to be rendered. i.e
-             *     if Zoom Level is 5 then we need to render the Users States Information onto the Map.
+             * A hash map of the Zoom Level and the Information which needs to be rendered. i.e
+             * if Zoom Level is 5 then we need to render the Users States Information onto the Map.
+             *
              * @type {Object}
              */
             ZOOM_LEVEL_MAP: {
@@ -46,16 +47,15 @@
             },
 
             /**
-             * [DEFAULT_ZOOM_LEVEL description]
-             *     The default zoom at whcich Google Map will be rendered.
-             *     This should be avaliable in the above ZOOM_LEVEL_MAP
+             * The default zoom at whcich Google Map will be rendered.
+             * This should be avaliable in the above ZOOM_LEVEL_MAP
+             *
              * @type {Number}
              */
             DEFAULT_ZOOM_LEVEL: 5,
 
             /**
-             * [initialize description] Renders the Google Map on to the element
-             * @return {[type]} [description]
+             * Renders the Google Map on to the element
              */
             initialize: function() {
                 var mapOptions = {
@@ -73,8 +73,7 @@
             },
 
             /**
-             * [initListerners description] Initializes all Map Related events here along with their call back funtion
-             * @return {[type]} [description]
+             * Initializes all Map Related events here along with their call back funtion
              */
             initListerners: function() {
                 google.maps.event.addListener(map, "zoom_changed", this.zoomChangedCallback.bind(this));
@@ -83,7 +82,7 @@
             /**
              * Callback for Zoom Event. It takes the type of zoom, int number and gets the type from ZOOM_LEVEL_MAP.
              * See ZOOM_LEVEL_MAP for possible zoom events.
-             * @return {[type]} [description]
+             *
              */
             zoomChangedCallback: function() {
                 var zoomLevel = map.getZoom(),
@@ -105,39 +104,44 @@
         /**
          * Marker Util defines all the functionality involved with showing a Marker on the screen,
          * hiding the marker, remomving the marker etc
+         *
          * @type {Object}
          */
         MarkerUtil = {
 
             /**
              * All markers during a particular zoom level are stored in this array.
+             *
              * @type {Array}
              */
             markers: [],
 
             /**
              * Bounds Google Map funtion reference
+             *
              * @type {google}
              */
             bounds: new google.maps.LatLngBounds(),
 
             /**
              * TO get the Long/Lat of an address from Google API
+             *
              * @type {google}
              */
             geocoder: new google.maps.Geocoder(),
 
             /**
              * To show the contect as a modal over a marker in google map
+             *
              * @type {google}
              */
             infowindow: new google.maps.InfoWindow(),
 
             /**
              * Initialize the data for the markers that need to be pased on the MAP
+             *
              * @param  {string} type The type of marker to be placed. ("State","City" or "Zip Code")
              * @param  {object} data The object which contains the data required to place the marker onto the MAP.
-             * @return {} N/A
              */
             initMarkers: function(type, data) {
                 this.processMarker(data, type);
@@ -148,6 +152,7 @@
              * Latitude information of a particlar address .
              * If Present it will call the render function which will place the marker and if not present will
              * call the Google Map geoCoder API to get Long/Lat Information
+             *
              * @param  {object} interator The object which contains the data required to place the marker onto the MAP.
              * @param  {string} type The type of marker to be placed. ("State","City" or "Zip Code")
              */
@@ -169,6 +174,7 @@
             },
             /**
              * Get Log Lat Information based on address
+             *
              * @param  {String} query   The address whose Co-oridnates needs to be found. (Karnataka Or Karnataka,Bangalore or Karnataka,Bangalore,560103)
              * @param  {string} type    The type of marker to be placed. ("State","City" or "Zip Code")
              */
@@ -182,6 +188,7 @@
 
             /**
              * Function Caches the result from geocoder.geocode and calls the method to add the marker to map
+             *
              * @param  {string} type    The type of marker to be placed. ("State","City" or "Zip Code")
              * @param  {String} query   The address whose Co-oridnates needs to be found. (Karnataka Or Karnataka,Bangalore or Karnataka,Bangalore,560103)
              * @param  {object} results google Location object. Result of geocoder.geocode
@@ -205,6 +212,7 @@
 
             /**
              * Place Marker on Google Map based on the result from GetLongLatInfo Function
+             *
              * @param  {string} type        The type of marker to be placed. ("State","City" or "Zip Code")
              * @param  {String} query       The address whose Co-oridnates needs to be found. (Karnataka Or Karnataka,Bangalore or Karnataka,Bangalore,560103)
              * @param  {Object} position    Object that contains the co-ordinates of the query string
@@ -226,6 +234,7 @@
 
             /**
              * Shows a tooltip with Information above a marker in a map
+             *
              * @param  {string} type    The type of marker to be placed. ("State","City" or "Zip Code")
              * @param  {String} query   The address whose Co-oridnates needs to be found. (Karnataka Or Karnataka,Bangalore or Karnataka,Bangalore,560103)
              * @param  {Object} marker  Google Marker Object which contains details of a address.
@@ -248,6 +257,7 @@
 
             /**
              * Sets the map on all markers in the array.
+             *
              * @param {Object} map The map to be set
              */
             setAllMap: function(map) {
@@ -269,11 +279,13 @@
         /**
          * Store Util Contains Methods and API's to get the Users Details, Process the User's details based
          * Google map and some Utility Function.
+         *
          * @type {Object}
          */
         StoreUtil = {
             /**
              * JSON Formot required to render the Data in Google Maps.
+             *
              * @type {Object}
              */
             mappedJson: {},
@@ -281,12 +293,14 @@
             /**
              * Speical Character used to seperate different values for the address which needs to be parsed by
              * Google Map.
+             *
              * @type {String}
              */
             DELIMITOR: ",",
 
             /**
              * function returns a json of Users data.
+             *
              * @return {Object} JSON Object.
              */
             getJSON: function() {
@@ -300,7 +314,7 @@
                             value: "Bangalore"
                         },
                         zipCode: {
-                            value: 560003
+                            value: 560005
                         }
                     }
 
@@ -328,7 +342,7 @@
                             value: "Hubli"
                         },
                         zipCode: {
-                            value: 560003
+                            value: 560067
                         }
                     }
 
@@ -346,6 +360,84 @@
                         }
                     }
 
+                }, {
+                    userId: 5,
+                    locationDetails: {
+                        state: {
+                            value: "Maharashtra"
+                        },
+                        city: {
+                            value: "Mumbai"
+                        },
+                        zipCode: {
+                            value: 400003
+                        }
+                    }
+                }, {
+                    userId: 6,
+                    locationDetails: {
+                        state: {
+                            value: "Maharashtra"
+                        },
+                        city: {
+                            value: "Mumbai"
+                        },
+                        zipCode: {
+                            value: 400098
+                        }
+                    }
+                }, {
+                    userId: 7,
+                    locationDetails: {
+                        state: {
+                            value: "MADHYA PRADESH"
+                        },
+                        city: {
+                            value: "Indore"
+                        },
+                        zipCode: {
+                            value: 452007
+                        }
+                    }
+                }, {
+                    userId: 8,
+                    locationDetails: {
+                        state: {
+                            value: "Delhi"
+                        },
+                        city: {
+                            value: "Karnal Haryana"
+                        },
+                        zipCode: {
+                            value: 132001
+                        }
+                    }
+                }, {
+                    userId: 9,
+                    locationDetails: {
+                        state: {
+                            value: "Rajasthan"
+                        },
+                        city: {
+                            value: "Jaipur"
+                        },
+                        zipCode: {
+                            value: 302021
+                        }
+                    }
+                }, {
+                    userId: 10,
+                    locationDetails: {
+                        state: {
+                            value: "Uttaranchal"
+                        },
+                        city: {
+                            value: "Dehradun"
+                        },
+                        zipCode: {
+                            value: 248001
+                        }
+                    }
                 }];
                 return response;
             },
@@ -393,6 +485,7 @@
              * A Utility Function which is useful to add infomration to a Object.
              * I tried adding it to Object.prototype.put but this somehow seems to break google API.
              * Still have to figure out why this is happening.
+             *
              * @param  {Object} obj     Object in which the value neeeds to be placed
              * @param  {[type]} value   The value which needs to be added to conunt key
              * @return {Object}         The Newely Created Object which might have or not ahve count as a property.
@@ -411,6 +504,7 @@
 
             /**
              * Get City, State or Zip Code Obejct to be processed based on the type.
+             *
              * @param  {string} type    The type of marker to be placed. ("State","City" or "Zip Code")
              * @return {object}         The type of marker to be placed
              */
@@ -420,6 +514,7 @@
 
             /**
              * Get City, State or Zip Code Object to be processed based on the Zoom Level.
+             *
              * @param  {string} level    The type of marker to be placed. ("State","City" or "Zip Code")
              * @return {object}         The type of marker to be placed
              */
@@ -430,6 +525,7 @@
             /**
              * Utility Function to Cache the Longitute/Latitude information of a particlar address,
              * avaliable in the Object
+             *
              * @param  {string} type    The type of marker to be placed. ("State","City" or "Zip Code")
              * @param  {String} key     The address whose Co-oridnates needs to be found. (Karnataka Or Karnataka,Bangalore or Karnataka,Bangalore,560103)
              * @param  {[type]} value   The value which needs to be put in LatLng value.
