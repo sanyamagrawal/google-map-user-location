@@ -1,4 +1,4 @@
-/*
+/* PROBLEM STATEMENT
 1. Assume a sample large (50K items) JSON data set (e.g USA users for a site with location information)
 2. Render a Google map, with pins shown for each state (e.g X users from California)
 3. On zoom in, show the pins for each city (e.g X users from Palo Alto)
@@ -7,13 +7,19 @@
  */
 
 /*! @license
- *  Project: Buttons
- *  Description: Google Map Interface which extends to multi market
- *  Author: Sanyam Agrawal
- *  Date : 26/03/2015 (DD/MM/YYYY)
- *  License: Apache License v2.0
+    Project: Buttons
+    Description: Google Map Interface which extends to multi market
+    Author: Sanyam Agrawal
+    Date : 29/03/2015 (DD/MM/YYYY)
  */
 
+/*
+    ASSUMPTIONS:
+    1. StoreUtil.getJSON() will give us all the data of a user.
+    2. The Map displays only those information avalibale in the user data set.
+    3. The user data set will not contain long/lat information initially and this will be needed to be fetched.
+    4. One User can have only one Address (State, City, Zip Code) ie. One user cannot belong to more then one address.
+ */
 (function($, window, document, undefined) {
 
     /**
@@ -57,7 +63,7 @@
                     center: new google.maps.LatLng(20.593684, 78.962880)
                 };
 
-                map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+                map = new google.maps.Map(document.getElementById("map-container"), mapOptions);
 
                 //Add listners and callback on google map
                 this.initListerners();
