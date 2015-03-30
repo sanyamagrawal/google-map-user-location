@@ -7,7 +7,7 @@
  */
 
 /*! @license
-    Project: Buttons
+    Project: Google Map
     Description: Google Map Interface which extends to multi market
     Author: Sanyam Agrawal
     Date : 29/03/2015 (DD/MM/YYYY)
